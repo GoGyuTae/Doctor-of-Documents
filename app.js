@@ -4,6 +4,8 @@ const { sequelize } = require('./models/index.js');
 const app = express();
 const models = require('./models');
 
+const apiRouter = require('./routes/apiRouter');
+app.use('/api', apiRouter);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true}));
@@ -18,6 +20,7 @@ models.sequelize.sync().then( () => {
 });
 
 
+
 app.get('/', (req, res) => {
   res.send('Hello World!\n');
   
@@ -27,10 +30,17 @@ app.listen(3000, () => {
   console.log('Example app listening on port 3000!');
 });
 
+
+
+
+
+
+
+
 app.post('/postData', async(req, res) => {
   
 
-  
+  /*
   try{
     const user = await models.user.create({ 
       useremail : req.body.useremail, 
@@ -47,24 +57,22 @@ app.post('/postData', async(req, res) => {
   } catch (err) {
     console.log(err, req.body.useremail);
   }
+*/
 
 
 
-
-
-/*
-  models.user.create({
+  models.usertable.create({
     useremail : req.body.useremail,
     name : req.body.name,
 
   })
   
-  .then((user) => {
-    console.log('success postData', user.toJSON());
+  .then((usertable) => {
+    console.log('success postData', usertable.toJSON());
 
     res.json(
       {
-      useremail : user.useremail
+      useremail : usertable.useremail
     });
   })
   .catch((err) => {
@@ -72,7 +80,7 @@ app.post('/postData', async(req, res) => {
     
 
   })
-*/
+
 
 
 });

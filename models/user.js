@@ -2,7 +2,7 @@
 const { sequelize } = require(".");
 */
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define('user', {
+    return sequelize.define("usertable", {
         useremail: {
             type: DataTypes.STRING(20),
             allowNull: false,
@@ -16,5 +16,6 @@ module.exports = (sequelize, DataTypes) => {
 
     },{
         timestamps: true,
+        tableName: "usertable",
     });
 }
