@@ -1,31 +1,21 @@
-const models = require('../../models');
-const {
-    usertable
-} = models;
+const express = require('express')
+const Models = require('../../models/');
 
-const signupController = {
-    joinUser(req, res) {
+module.exports = {
+    joinUser: (req, res) => {
+        console.log(req.body);
         
-        models.usertable.create({
-            useremail : req.body.useremail,
+        Models.usertable.create ({ 
+            useremail : req.body.useremail, 
             name : req.body.name
-      })
-      
-      .then((usertable) => {
-            console.log('success postData', usertable.toJSON());   
-            
-            res.json(
-                {
-                useremail : usertable.useremail
-              }); 
-      })
-      .catch((err) => {
+        })
+        .then((usertable) => {
+            console.log('success join', usertable.toJSON());
+            //res.json({useremail : usertable.useremail});
+        })
+        .catch((err) => {
             console.log(err, req.body.useremail);
-        
-    
-      })
+        })
     }
-        
 }
 
-module.exports = signupController;

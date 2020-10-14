@@ -4,11 +4,12 @@ const { sequelize } = require('./models/index.js');
 const app = express();
 const models = require('./models');
 
+app.use(bodyParser.urlencoded({ extended: true}));
+app.use(bodyParser.json());
+
 const apiRouter = require('./routes/apiRouter');
 app.use('/api', apiRouter);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true}));
 
 //model.sync();
 
@@ -37,51 +38,5 @@ app.listen(3000, () => {
 
 
 
-app.post('/postData', async(req, res) => {
-  
 
-  /*
-  try{
-    const user = await models.user.create({ 
-      useremail : req.body.useremail, 
-      name : req.body.name,
-     });
-
-    console.log('succcess', user.toJSON());
-    
-    res.json(
-      {
-      useremail : user.useremail
-    });
-
-  } catch (err) {
-    console.log(err, req.body.useremail);
-  }
-*/
-
-
-
-  models.usertable.create({
-    useremail : req.body.useremail,
-    name : req.body.name,
-
-  })
-  
-  .then((usertable) => {
-    console.log('success postData', usertable.toJSON());
-
-    res.json(
-      {
-      useremail : usertable.useremail
-    });
-  })
-  .catch((err) => {
-    console.log(err, req.body.useremail);
-    
-
-  })
-
-
-
-});
 

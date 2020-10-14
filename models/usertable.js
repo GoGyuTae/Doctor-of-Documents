@@ -1,8 +1,7 @@
-/*const { DataTypes } = require("sequelize/types");
-const { sequelize } = require(".");
-*/
+'use strict'
 module.exports = (sequelize, DataTypes) => {
-    return sequelize.define("usertable", {
+    let usertable = sequelize.define("usertable", {
+        
         useremail: {
             type: DataTypes.STRING(20),
             allowNull: false,
@@ -18,4 +17,6 @@ module.exports = (sequelize, DataTypes) => {
         timestamps: true,
         tableName: "usertable",
     });
+
+    return usertable;
 }
