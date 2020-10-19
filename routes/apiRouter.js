@@ -6,5 +6,6 @@ const signupController = require('./controllers/signupController');
 router.post('/join', signupController.joinUser);
 router.post('/update', signupController.updateUser);
 router.post('/delete', signupController.deleteUser);
+router.post('/login', signupController.loginUser);
 
 module.exports = router;

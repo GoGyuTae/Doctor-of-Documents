@@ -3,11 +3,16 @@ const express = require('express');
 const { sequelize } = require('./models/index.js');
 const app = express();
 const models = require('./models');
-
-app.use(bodyParser.urlencoded({ extended: true}));
-app.use(bodyParser.json());
-
 const apiRouter = require('./routes/apiRouter');
+
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: false
+}));
+//app.use(bodyParser.urlencoded({ extended: true}));
+//app.use(bodyParser.json());
+
+
 app.use('/api', apiRouter);
 
 

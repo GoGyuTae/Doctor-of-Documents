@@ -2,16 +2,24 @@
 module.exports = (sequelize, DataTypes) => {
     let usertable = sequelize.define("usertable", {
         
-        useremail: {
-            type: DataTypes.STRING(20),
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        email: {
+            type: DataTypes.STRING,
             allowNull: false,
             unique: true,
+            validate: {
+                isEmail: true
+            }
         },
-
-        name: {
-            type: DataTypes.STRING(10),
+        password: {
+            type: DataTypes.TEXT,
             allowNull: false,
-        },
+        }
+
+        
 
     },{
         timestamps: true,
