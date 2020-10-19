@@ -7,10 +7,10 @@ module.exports = {
         let {email, name, password} = req.body;
         bcrypt.genSalt(10, function(err, salt) {
             if(err) {
-                console.log('bcrypt.genSalt() errer : ', err.message);
+                console.log('bcrypt.genSalt() error : ', err.message);
             } else {
                 bcrypt.hash(password, salt, null, function(err, hash) {
-                    if(err) {console.log('bcrypt.hash() errer : ', err.message);}
+                    if(err) {console.log('bcrypt.hash() error : ', err.message);}
                              
                 })
                 .then((result) =>{
@@ -61,10 +61,11 @@ module.exports = {
         })
         .then((result) => {
             console.log('success update');
+            res.status(201).json(result);
             console.log(result);
         })
         .catch((err) => {
-            console.log(err, req.body.email);
+            console.log('/updateUser() error : ', err);
         })
     },
 
@@ -76,18 +77,19 @@ module.exports = {
         })
         .then((result) => {
             console.log(result);
+            res.status(201).json(result);
         })
         .catch((err) => {
-            console.log(err, req.body.email);
+            console.log('/deleteUser() error : ', err);
         })
         
     },
 
     loginUser: (req, res) => {
-        const { input_email, input_password } = req.body;
-        Models.usertable.findOne({
+        let { email, password, name } = req.body;
+        const user = Models.usertable.findOne({
             where: {
-                email : input_email
+                email : email
             },
             
         })
@@ -96,19 +98,29 @@ module.exports = {
                 console.log('가입된 이메일 없음');
             }
             res.status(201).json(result);
-            
-            if(result.email == input_email) {
+            const match = bcrypt.compare(password, result.dataValues.password)
+            .then((matchresult) =>{
+                //console.log(result.dataValues.password);
+                //console.log(matchresult);
+                
+                if(user.email = email) {
                 console.log('email same')
-                if(result.password == input_password) { //password = name
+                if(matchresult) { //password = name
                     console.log('login success');
                 }
                 else {
                     console.log('비밀번호 틀림');
                 }
             }
+            })
+            .catch((err) => {
+                console.log('/bcrypt match() error : ', err);
+            })
+            
+            
         })
         .catch((err) => {
-            console.log(err);
+            console.log('/loginUser error : ', err);
         })
     }
 
