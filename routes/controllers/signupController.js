@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 module.exports = {
     
     joinUser: (req, res) => {
-        let {email, name, password} = req.body;
+        let {phone, email, password} = req.body;
         bcrypt.genSalt(10, function(err, salt) {
             if(err) {
                 console.log('bcrypt.genSalt() error : ', err.message);
@@ -17,8 +17,8 @@ module.exports = {
                     password = result;
                     console.log(password);
                     Models.usertable.create ({ 
-                        email : email, 
-                        name : name,
+                        phone : phone,
+                        email : email,
                         password : password
                     })
                     .then((result) => {
@@ -31,9 +31,11 @@ module.exports = {
                         if (err.name === 'SequelizeValidationError') {  
                             return res.status(400).json({warn: 'check the email pattern'});
                         }
-                        // 이미 가입된 이메일인 경우 
+                        // 이미 가입된 핸드폰 번호의 경우 
                         if (err.name === 'SequelizeUniqueConstraintError') {
-                            return res.status(400).json({warn: 'Already join email'});
+                            console.log('join() error : 이미 가입된 핸드폰 번호 \n', err);
+                            return res.status(400).json({warn: 'Already join phoneNumber'});
+                            
                         }
                         
                         // 서버가 처리 하지 못하는 경우 (5xx)
@@ -52,8 +54,8 @@ module.exports = {
 
     updateUser: (req, res) => {
         Models.usertable.update ({
-            email : req.body.newemail,
-            name : req.body.name
+            phone : req.body.phone,
+            email : req.body.newemail
         }, {
             where: {
                 email : req.body.email
@@ -86,7 +88,7 @@ module.exports = {
     },
 
     loginUser: (req, res) => {
-        let { email, password, name } = req.body;
+        let { email, password } = req.body;
         const user = Models.usertable.findOne({
             where: {
                 email : email
@@ -98,6 +100,7 @@ module.exports = {
                 console.log('가입된 이메일 없음');
             }
             res.status(201).json(result);
+            console.log(user);
             const match = bcrypt.compare(password, result.dataValues.password)
             .then((matchresult) =>{
                 //console.log(result.dataValues.password);
@@ -105,8 +108,9 @@ module.exports = {
                 
                 if(user.email = email) {
                 console.log('email same')
-                if(matchresult) { //password = name
+                if(matchresult) { 
                     console.log('login success');
+                    console.log(user.email);
                 }
                 else {
                     console.log('비밀번호 틀림');
@@ -122,6 +126,24 @@ module.exports = {
         .catch((err) => {
             console.log('/loginUser error : ', err);
         })
-    }
+    },
 
+    checkEmail: (req, res) => {
+        Models.usertable.findOne({
+            where: { 
+                email : req.body.email
+            },
+        })
+        .then((result) => {
+            if(result) {
+                res.json({status: 1}); // already join this email
+            }
+            else {
+                res.json({status: 0}); // join this email
+            }
+        })
+        .catch((err) => {
+            console.log('/checkEmail() error : ', err);
+        })
+    }
 }

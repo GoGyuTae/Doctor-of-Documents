@@ -7,5 +7,6 @@ router.post('/join', signupController.joinUser);
 router.post('/update', signupController.updateUser);
 router.post('/delete', signupController.deleteUser);
 router.post('/login', signupController.loginUser);
+router.post('/checkEmail', signupController.checkEmail);
 
 module.exports = router;
