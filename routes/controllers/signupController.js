@@ -34,7 +34,7 @@ module.exports = {
                         // 이미 가입된 핸드폰 번호의 경우 
                         if (err.name === 'SequelizeUniqueConstraintError') {
                             console.log('join() error : 이미 가입된 핸드폰 번호 \n', err);
-                            return res.status(400).json({warn: 'Already join phoneNumber'});
+                            return res.json({status: 1});
                         
                             
                         }
@@ -74,18 +74,37 @@ module.exports = {
     },
 
     deleteUser: (req, res) => {
-        Models.usertable.destroy ({
+        let { email, password } = req.body;
+        const user = Models.usertable.findOne({
             where: {
-                email : req.body.email
-            }
+                email : email
+            },
         })
         .then((result) => {
-            console.log(result);
-            res.status(200).json({status: 0});
-        })
-        .catch((err) => {
-            console.log('/deleteUser() error : ', err);
-            res.json({status: 1});
+            if(!result){
+                console.log('가입된 이메일 없음');
+            }
+            const match = bcrypt.compare(password, result.dataValues.password)
+            .then((matchresult) => {
+                if(matchresult) {
+                    Models.usertable.destroy ({
+                        where: {
+                            email : req.body.email
+                        } 
+                    })
+                    .then((result) => {
+                        console.log(result);
+                        res.status(200).json({status: 0});  // delete OK
+                    })
+                    .catch((err) => {
+                        console.log('/deleteUser() error : ', err);
+                        res.json({status: 1});
+                    })
+                }
+                else {
+                    console.log('password mismatch');
+                }
+            })
         })
         
     },
@@ -143,9 +162,11 @@ module.exports = {
         .then((result) => {
             if(result) {
                 res.json({status: 1}); // already join this email
+                console.log('이미 가입된 이메일');
             }
             else {
                 res.json({status: 0}); // join this email
+                console.log('사용가능한 이메일');
             }
         })
         .catch((err) => {
