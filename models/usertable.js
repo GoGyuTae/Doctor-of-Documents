@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     let usertable = sequelize.define("usertable", {
         
         phone: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: false,
             unique: true
         },

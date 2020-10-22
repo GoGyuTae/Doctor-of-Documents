@@ -35,15 +35,17 @@ module.exports = {
                         if (err.name === 'SequelizeUniqueConstraintError') {
                             console.log('join() error : 이미 가입된 핸드폰 번호 \n', err);
                             return res.status(400).json({warn: 'Already join phoneNumber'});
+                        
                             
                         }
                         
                         // 서버가 처리 하지 못하는 경우 (5xx)
                         res.status(500).json({error: err});
+                        console.log("join err: " , err);
                     });
                 })
                 .catch((err) => {
-                    console.log(err);
+                    console.log("bcrypt err: ", err);
                 })
                 
             }
@@ -55,7 +57,7 @@ module.exports = {
     updateUser: (req, res) => {
         Models.usertable.update ({
             phone : req.body.phone,
-            email : req.body.newemail
+            email : req.body.email
         }, {
             where: {
                 email : req.body.email
@@ -79,10 +81,11 @@ module.exports = {
         })
         .then((result) => {
             console.log(result);
-            res.status(201).json(result);
+            res.status(200).json({status: 0});
         })
         .catch((err) => {
             console.log('/deleteUser() error : ', err);
+            res.json({status: 1});
         })
         
     },
@@ -98,8 +101,9 @@ module.exports = {
         .then(function(result) {
             if(!result){
                 console.log('가입된 이메일 없음');
+                res.json({status: 1});
             }
-            res.status(201).json(result);
+            //res.status(201).json(result);
             console.log(user);
             const match = bcrypt.compare(password, result.dataValues.password)
             .then((matchresult) =>{
@@ -109,11 +113,13 @@ module.exports = {
                 if(user.email = email) {
                 console.log('email same')
                 if(matchresult) { 
-                    console.log('login success');
+                    console.log('login success');   // 앱과 형식 맞추기
                     console.log(user.email);
+                    res.status(200).json({status: 0}); // 앱과 형식 맞춰 파싱
                 }
                 else {
                     console.log('비밀번호 틀림');
+                    res.json({status: 1});
                 }
             }
             })
@@ -145,5 +151,6 @@ module.exports = {
         .catch((err) => {
             console.log('/checkEmail() error : ', err);
         })
+        
     }
 }
