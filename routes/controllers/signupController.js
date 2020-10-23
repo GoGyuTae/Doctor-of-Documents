@@ -173,5 +173,34 @@ module.exports = {
             console.log('/checkEmail() error : ', err);
         })
         
-    }
+    },
+
+    checkPassword: (req, res) => {
+        let { email, password } = req.body;
+        const user = Models.usertable.findOne({
+            where : {
+                email : email
+            },
+        })
+        .then((result) => {
+            if(!result){
+                console.log('가입된 이메일 없음');
+            }
+            else{
+                bcrypt.compare(password, result.dataValues.password)
+                .then((matchresult) => {
+                    if(matchresult) {
+                        res.json({status: 1});
+                        console.log('\n비밀번호 동일\n');
+                    }
+                    else {
+                        console.log('\n비밀번호 불일치\n');
+                    }
+                })
+            }
+        })
+        .catch((err) => {
+            console.log('checkPassword() error : ', err);
+        })
+    },
 }
