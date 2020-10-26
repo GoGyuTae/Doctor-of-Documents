@@ -9,5 +9,6 @@ router.post('/delete', signupController.deleteUser);
 router.post('/login', signupController.loginUser);
 router.post('/checkEmail', signupController.checkEmail);
 router.post('/checkPassword', signupController.checkPassword);
+router.post('/changeInfo', signupController.changeInfo);
 
 module.exports = router;

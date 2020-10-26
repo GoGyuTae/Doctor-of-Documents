@@ -23,13 +23,14 @@ module.exports = {
                     })
                     .then((result) => {
                         console.log('success join', result.toJSON());
-                        res.status(201).json(result);
+                        res.json({status: 0});
                     })
                     .catch((err) => {
             
                         // 이메일 형식이 아닌경우 (클라이언트 오류 (4xx))
                         if (err.name === 'SequelizeValidationError') {  
-                            return res.status(400).json({warn: 'check the email pattern'});
+                            return res.json({status: 1});
+                            //return res.status.json({warn: 'check the email pattern'});
                         }
                         // 이미 가입된 핸드폰 번호의 경우 
                         if (err.name === 'SequelizeUniqueConstraintError') {
@@ -203,4 +204,66 @@ module.exports = {
             console.log('checkPassword() error : ', err);
         })
     },
+
+    changeInfo: (req,res) => {
+        let { email, newemail, newpassword, newphone} = req.body;
+
+        if(newemail) {
+            Models.usertable.update ({
+                email : newemail
+            }, {
+                where: {
+                    email : email
+                }
+            })
+            .then((result) => {
+                res.json({status: 0});  // email change success
+                console.log('\n이메일 수정완료\n');
+            })
+        }
+
+        if(newpassword) {
+            bcrypt.genSalt(10, function(err, salt) {
+                if(err) {
+                    console.log('bcrypt.genSalt() error : ', err.message);
+                } else {
+                    bcrypt.hash(newpassword, salt, null, function(err, hash) {
+                        if(err) {console.log('bcrypt.hash() error : ', err.message);}        
+                    })
+                    .then((result) => {
+                        newpassword = result;
+                        Models.usertable.update ({
+                            password : newpassword
+                        }, {
+                            where: {
+                                email : email
+                            }
+                        })
+                        .then((result) => {
+                            res.json({status: 1});  // password change success
+                            console.log('\n비밀번호 수정완료\n');
+                        })
+                        .catch((err) => {
+                            console.log('비밀번호 수정오류');
+                        })
+                    })
+                }
+            })
+        }
+
+        if(newphone) {
+            Models.usertable.update ({
+                phone : newphone
+            }, {
+                where: {
+                    email : email
+                }
+            })
+            .then((result) => {
+                res.json({status: 2});  // phone change success
+                console.log('\n휴대폰 번호 수정완료\n');
+            })
+        }
+        
+    }
 }
