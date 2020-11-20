@@ -25,10 +25,12 @@ models.sequelize.sync().then( () => {
   console.log(err);
 });
 
-
+app.get('/privacy', function (req, res) {
+  res.sendFile(__dirname + '/privacy.html');
+});
 
 app.get('/', (req, res) => {
-  res.send('Hello World!\n');
+  res.send('Running SDC Server \n');
   
  });
 

@@ -1,5 +1,5 @@
 const Models = require('../../models/');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt-nodejs');
 
 module.exports = {
     
@@ -10,12 +10,8 @@ module.exports = {
                 console.log('bcrypt.genSalt() error : ', err.message);
             } else {
                 bcrypt.hash(password, salt, null, function(err, hash) {
-                    if(err) {console.log('bcrypt.hash() error : ', err.message);}
-                             
-                })
-                .then((result) =>{
-                    password = result;
-                    console.log(password);
+
+                    password = hash;
                     Models.usertable.create ({ 
                         phone : phone,
                         email : email,
@@ -28,7 +24,8 @@ module.exports = {
                     .catch((err) => {
             
                         // 이메일 형식이 아닌경우 (클라이언트 오류 (4xx))
-                        if (err.name === 'SequelizeValidationError') {  
+                        if (err.name === 'SequelizeValidationError') {
+                            console.log(err);  
                             return res.json({status: 1});
                             //return res.status.json({warn: 'check the email pattern'});
                         }
@@ -41,12 +38,13 @@ module.exports = {
                         }
                         
                         // 서버가 처리 하지 못하는 경우 (5xx)
-                        res.status(500).json({error: err});
+                        //res.status(500).json({error: err});
                         console.log("join err: " , err);
                     });
-                })
-                .catch((err) => {
-                    console.log("bcrypt err: ", err);
+
+                    if(err) {console.log('bcrypt.hash() error : ', err.message);}
+                    else { console.log(hash); }
+                    
                 })
                 
             }
@@ -66,7 +64,6 @@ module.exports = {
         })
         .then((result) => {
             console.log('success update');
-            res.status(201).json(result);
             console.log(result);
         })
         .catch((err) => {
@@ -85,8 +82,7 @@ module.exports = {
             if(!result){
                 console.log('가입된 이메일 없음');
             }
-            const match = bcrypt.compare(password, result.dataValues.password)
-            .then((matchresult) => {
+            const match = bcrypt.compare(password, result.dataValues.password, function(err, matchresult) {
                 if(matchresult) {
                     Models.usertable.destroy ({
                         where: {
@@ -95,7 +91,7 @@ module.exports = {
                     })
                     .then((result) => {
                         console.log(result);
-                        res.status(200).json({status: 0});  // delete OK
+                        res.json({status: 0});  // delete OK
                     })
                     .catch((err) => {
                         console.log('/deleteUser() error : ', err);
@@ -103,9 +99,11 @@ module.exports = {
                     })
                 }
                 else {
-                    console.log('password mismatch');
+                    console.log('password mismatch', err);
                 }
+
             })
+        
         })
         
     },
@@ -125,29 +123,22 @@ module.exports = {
             }
             //res.status(201).json(result);
             console.log(user);
-            const match = bcrypt.compare(password, result.dataValues.password)
-            .then((matchresult) =>{
-                //console.log(result.dataValues.password);
-                //console.log(matchresult);
-                
+            const match = bcrypt.compare(password, result.dataValues.password, function(err, matchresult) {
+
                 if(user.email = email) {
-                console.log('email same')
-                if(matchresult) { 
-                    console.log('login success');   // 앱과 형식 맞추기
-                    console.log(user.email);
-                    res.status(200).json({status: 0}); // 앱과 형식 맞춰 파싱
+                    console.log('email same')
+                    if(matchresult) { 
+                        console.log('login success');   // 앱과 형식 맞추기
+                        console.log(user.email);
+                        res.status(200).json({status: 0}); // 앱과 형식 맞춰 파싱
+                    }
+                    else {
+                        console.log('비밀번호 틀림');
+                        res.json({status: 1});
+                    }
                 }
-                else {
-                    console.log('비밀번호 틀림');
-                    res.json({status: 1});
-                }
-            }
+
             })
-            .catch((err) => {
-                console.log('/bcrypt match() error : ', err);
-            })
-            
-            
         })
         .catch((err) => {
             console.log('/loginUser error : ', err);
@@ -155,6 +146,7 @@ module.exports = {
     },
 
     checkEmail: (req, res) => {
+        let flag;
         Models.usertable.findOne({
             where: { 
                 email : req.body.email
@@ -163,10 +155,12 @@ module.exports = {
         .then((result) => {
             if(result) {
                 res.json({status: 1}); // already join this email
+                flag = 1;
                 console.log('이미 가입된 이메일');
             }
             else {
                 res.json({status: 0}); // join this email
+                flag = 0;
                 console.log('사용가능한 이메일');
             }
         })
@@ -188,18 +182,21 @@ module.exports = {
                 console.log('가입된 이메일 없음');
             }
             else{
-                bcrypt.compare(password, result.dataValues.password)
-                .then((matchresult) => {
+                bcrypt.compare(password, result.dataValues.password, function(err, matchresult) {
+
                     if(matchresult) {
                         res.json({status: 1});
-                        console.log('\n비밀번호 동일\n');
+                        console.log('\n checkPassword 비밀번호 동일\n');
                     }
                     else {
-                        console.log('\n비밀번호 불일치\n');
+                        res.json({status: 'passwordfail'});
+                        console.log('\n checkPassword 비밀번호 불일치\n');
                     }
+
                 })
             }
         })
+        
         .catch((err) => {
             console.log('checkPassword() error : ', err);
         })
@@ -209,17 +206,35 @@ module.exports = {
         let { email, newemail, newpassword, newphone} = req.body;
 
         if(newemail) {
-            Models.usertable.update ({
-                email : newemail
-            }, {
-                where: {
-                    email : email
-                }
+            
+            Models.usertable.findOne({
+                where: { 
+                    email : req.body.newemail
+                },
             })
             .then((result) => {
-                res.json({status: 0});  // email change success
-                console.log('\n이메일 수정완료\n');
+                if(result) {
+                    res.json({status: 3}); // 중복된 이메일로 변경시도
+                    console.log('\n중복된 이메일로 변경 시도\n');
+                }
+                else{
+                    Models.usertable.update ({
+                        email : newemail
+                    }, {
+                        where: {
+                            email : email
+                        }
+                    })
+                    .then((result) => {
+                        res.json({status: 0});  // email change success
+                        console.log('\n이메일 수정완료\n');
+                    })
+                }
             })
+            .catch((err) => {
+                console.log('/checkEmail() error : ', err);
+            })
+            
         }
 
         if(newpassword) {
@@ -228,10 +243,9 @@ module.exports = {
                     console.log('bcrypt.genSalt() error : ', err.message);
                 } else {
                     bcrypt.hash(newpassword, salt, null, function(err, hash) {
-                        if(err) {console.log('bcrypt.hash() error : ', err.message);}        
-                    })
-                    .then((result) => {
-                        newpassword = result;
+                        if(err) {console.log('bcrypt.hash() error : ', err.message);}
+                        
+                        newpassword = hash;
                         Models.usertable.update ({
                             password : newpassword
                         }, {
