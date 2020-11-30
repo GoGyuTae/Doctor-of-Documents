@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt-nodejs');
 module.exports = {
     
     joinUser: (req, res) => {
-        let {phone, email, password} = req.body;
+        let {phone, email, password, name} = req.body;
         bcrypt.genSalt(10, function(err, salt) {
             if(err) {
                 console.log('bcrypt.genSalt() error : ', err.message);
@@ -15,7 +15,8 @@ module.exports = {
                     Models.usertable.create ({ 
                         phone : phone,
                         email : email,
-                        password : password
+                        password : password,
+                        name : name
                     })
                     .then((result) => {
                         console.log('success join', result.toJSON());
@@ -32,6 +33,7 @@ module.exports = {
                         // 이미 가입된 핸드폰 번호의 경우 
                         if (err.name === 'SequelizeUniqueConstraintError') {
                             console.log('join() error : 이미 가입된 핸드폰 번호 \n', err);
+                            console.log(err.toJSON());
                             return res.json({status: 1});
                         
                             
@@ -39,7 +41,7 @@ module.exports = {
                         
                         // 서버가 처리 하지 못하는 경우 (5xx)
                         //res.status(500).json({error: err});
-                        console.log("join err: " , err);
+                        //console.log("join err: " , err);
                     });
 
                     if(err) {console.log('bcrypt.hash() error : ', err.message);}
@@ -128,9 +130,10 @@ module.exports = {
                 if(user.email = email) {
                     console.log('email same')
                     if(matchresult) { 
-                        console.log('login success');   // 앱과 형식 맞추기
-                        console.log(user.email);
-                        res.status(200).json({status: 0}); // 앱과 형식 맞춰 파싱
+                        //console.log('login success');   // 앱과 형식 맞추기
+                        console.log('success login'+user.email);
+                        console.log(user.email + " and " + result.dataValues.name);
+                        res.json({status: result.dataValues.name}); // 앱과 형식 맞춰 파싱
                     }
                     else {
                         console.log('비밀번호 틀림');
@@ -166,6 +169,30 @@ module.exports = {
         })
         .catch((err) => {
             console.log('/checkEmail() error : ', err);
+        })
+        
+    },
+
+    checkName: (req, res) => {
+        
+        Models.usertable.findOne({
+            where: { 
+                name : req.body.name
+            },
+        })
+        .then((result) => {
+            if(result) {
+                res.json({status: 2}); // already use this name
+                //console.log('이미 사용중인 닉네임');
+            }
+            else {
+                res.json({status: 0}); // join this email
+                
+                //console.log('사용가능한 닉네임');
+            }
+        })
+        .catch((err) => {
+            console.log('/checkName() error : ', err);
         })
         
     },

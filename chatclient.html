@@ -3,24 +3,24 @@
 <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css'/>
-    <script src="../socket.io-client/dist/socket.io.js"></script>
-    <script src="../jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
 <textarea rows="20" cols="30" id="chat"></textarea><br>
-<input type="text" id="user"><input type="button" value="msg submit" onclick="myOnClick()">
+<input type="text" id="user"><button id="msgClick" type="button">msg submit</button>
 </body>
 <script>
-
-    var socket = io.connect('http://localhost:5000/chat');
-    socket.on('recMsg', function (data) {
+    window.onload = function() {
+        var socket = io();
+        socket.on('recMsg', function (data) {
         console.log(data.comment)
         $('#chat').append(data.comment);
-    });
-
-    function myOnClick() {
-        socket.emit("msg", {comment: $('#user').val()});
-        $('#user').val('');
+        });
+        $("#msgClick").on("click", function () {
+            socket.emit("msg", {comment: $('#user').val()});
+            $('#user').val('');
+        });
     }
 </script>
 </html>
