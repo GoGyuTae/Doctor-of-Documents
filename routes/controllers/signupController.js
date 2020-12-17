@@ -1,6 +1,22 @@
 const Models = require('../../models/');
 const bcrypt = require('bcrypt-nodejs');
 
+function insertToken(token, email) {
+    Models.usertable.update ({
+        token : token,
+    }, {
+        where: {
+            email : email
+        }
+    })
+    .then((result) => {
+        console.log('success insertToken');
+        //console.log(result);
+    })
+    .catch((err) => {
+        console.log('/updateUser() error : ', err);
+    })
+}
 module.exports = {
     
     joinUser: (req, res) => {
@@ -111,7 +127,8 @@ module.exports = {
     },
 
     loginUser: (req, res) => {
-        let { email, password } = req.body;
+        let { email, password, token } = req.body;
+        console.log('\n로그인시도 email:  ', email);
         const user = Models.usertable.findOne({
             where: {
                 email : email
@@ -128,17 +145,23 @@ module.exports = {
             const match = bcrypt.compare(password, result.dataValues.password, function(err, matchresult) {
 
                 if(user.email = email) {
+                    //console.log('email 확인 :', user.email);
                     console.log('email same')
                     if(matchresult) { 
                         //console.log('login success');   // 앱과 형식 맞추기
-                        console.log('success login'+user.email);
+                        console.log('--- success login ---');
                         console.log(user.email + " and " + result.dataValues.name);
-                        res.json({status: result.dataValues.name}); // 앱과 형식 맞춰 파싱
+                        res.json({name: result.dataValues.name, phone: result.dataValues.phone}); // 앱과 형식 맞춰 파싱*/
+                        
+                        insertToken(token, email);
                     }
                     else {
                         console.log('비밀번호 틀림');
                         res.json({status: 1});
                     }
+                }
+                else {
+
                 }
 
             })
@@ -148,8 +171,22 @@ module.exports = {
         })
     },
 
+    logoutUser: (req, res) => {
+        var setdefault = "default";
+        Models.usertable.update ({
+            token : setdefault
+        }, {
+            where: {
+                email : req.body.email
+            }
+        })
+        .then((result) => {
+            res.json({logout: 0});  // 
+            console.log(result, '  로그아웃\n');
+        })
+    },
+
     checkEmail: (req, res) => {
-        let flag;
         Models.usertable.findOne({
             where: { 
                 email : req.body.email
@@ -158,12 +195,10 @@ module.exports = {
         .then((result) => {
             if(result) {
                 res.json({status: 1}); // already join this email
-                flag = 1;
                 console.log('이미 가입된 이메일');
             }
             else {
                 res.json({status: 0}); // join this email
-                flag = 0;
                 console.log('사용가능한 이메일');
             }
         })

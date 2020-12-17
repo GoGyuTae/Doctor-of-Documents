@@ -22,7 +22,10 @@ module.exports = (sequelize, DataTypes) => {
         name: {
             type: DataTypes.STRING,
             allowNull: true,
-
+        },
+        token: {
+            type: DataTypes.TEXT,
+            allowNull: true,
         }
 
         

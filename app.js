@@ -2,12 +2,20 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const { sequelize } = require('./models/index.js');
 
+var admin = require('firebase-admin');
+var serviceAccount = require('./firebase-adminsdk.json');
+
 const models = require('./models');
 const apiRouter = require('./routes/apiRouter');
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 var nicknames = [];
+
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+	databaseURL: "https://document-doctor2.firebaseio.com"
+});
 
 /*app.use(express.json());
 app.use(express.urlencoded({
